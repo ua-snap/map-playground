@@ -12,7 +12,6 @@
           :place-layer="placeLayer"
           :crs="crs"
           :map-options="mapOptions"
-          :local-layers="localLayers"
         ></mv-map>
       </div>
     </div>
@@ -26,7 +25,6 @@
 /* eslint new-cap: "off" */
 import _ from "lodash";
 import Vue from "vue";
-import moment from "moment";
 
 import mapLayers from "../layers";
 import L from "leaflet";
@@ -35,8 +33,8 @@ import leaflet_heat from "leaflet.heat"; // eslint-disable-line
 import "leaflet/dist/leaflet.css";
 
 Object.defineProperty(Vue.prototype, "$L", { value: L });
-Object.defineProperty(Vue.prototype, "$moment", { value: moment });
 
+L.Icon.Default.imagePath = process.env.BASE_URL;
 
 import MvMap from "./Map";
 import LayerList from "./LayerList";
@@ -105,11 +103,7 @@ export default {
     this.$store.commit("setLayers", this.layers);
   },
   mounted() {
-    this.fetchFireData();
-    this.fetchViirsData();
 
-    // Remove any stray localStorage.
-    localStorage.clear();
   },
   methods: {}
 };

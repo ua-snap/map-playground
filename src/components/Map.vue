@@ -6,6 +6,7 @@
 
 <script>
 import _ from "lodash";
+import axios from "axios";
 
 export default {
   name: "mv-map",
@@ -22,7 +23,8 @@ export default {
     // Leaflet object
     map: undefined,
     // Object of Leaflet layer objects, keyed by layer ID.
-    layers: {}
+    layers: {},
+    marker: undefined // for info marker/popup
   },
   computed: {
     layers() {
@@ -58,6 +60,8 @@ export default {
       })
       .addTo(this.$options.leaflet.map);
 
+    this.$options.leaflet.map.on("click", this.handleClickEvent);
+
     this.addLayers();
   },
   watch: {
@@ -70,6 +74,135 @@ export default {
     }
   },
   methods: {
+    // Fetch the info from API & show popup.
+    handleClickEvent(ev) {
+      axios
+        .get(
+          "http://testing.eba-hkca5w5b.us-west-2.elasticbeanstalk.com/permafrost/" +
+            ev.latlng.lat +
+            "/" +
+            ev.latlng.lng
+        )
+        .then(res => {
+          if (this.$options.leaflet.marker) {
+            this.$options.leaflet.map.removeLayer(this.$options.leaflet.marker);
+          }
+          console.log(res.data);
+          let values = {
+            gipl_alt_2010:
+              res.data["GIPL Active Layer Thickness (m)"]["GIPL_2010_ALT"],
+            gipl_alt_2050:
+              res.data["GIPL Active Layer Thickness (m)"]["GIPL_2050_ALT"],
+            gipl_magt_2010_1m:
+              res.data["GIPL Mean Annual Ground Temperature (deg. C)"][
+                "GIPL_2010_1m_MAGT"
+              ],
+            gipl_magt_2010_3m:
+              res.data["GIPL Mean Annual Ground Temperature (deg. C)"][
+                "GIPL_2010_3m_MAGT"
+              ],
+            gipl_magt_2010_5m:
+              res.data["GIPL Mean Annual Ground Temperature (deg. C)"][
+                "GIPL_2010_5m_MAGT"
+              ],
+            gipl_magt_2050_1m:
+              res.data["GIPL Mean Annual Ground Temperature (deg. C)"][
+                "GIPL_2050_1m_MAGT"
+              ],
+            gipl_magt_2050_3m:
+              res.data["GIPL Mean Annual Ground Temperature (deg. C)"][
+                "GIPL_2050_3m_MAGT"
+              ],
+            gipl_magt_2050_5m:
+              res.data["GIPL Mean Annual Ground Temperature (deg. C)"][
+                "GIPL_2050_5m_MAGT"
+              ],
+            giv_2008:
+              res.data[
+                "Jorgenson et al. (2008) Permafrost Extent and Ground Ice Volume"
+              ]["Ground Ice Volume"],
+            pe_2008:
+              res.data[
+                "Jorgenson et al. (2008) Permafrost Extent and Ground Ice Volume"
+              ]["Permafrost Extent"],
+            magt_2018:
+              res.data[
+                "Obu et al. (2018) Mean Annual Ground Temperature (deg. C) at Top of Permafrost"
+              ]["Obu 2000-2016 MAGT (Top of Permafrost)"],
+            pe_2018:
+              res.data["Obu et al. (2018) Permafrost Extent"][
+                "Permafrost Extent"
+              ]
+          };
+          let template = _.template(
+            `
+            <h4 class="title is-6">GIPL Mean Annual Ground Temperature (&deg;C)</h4>
+            <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Depth (m)</th>
+                <th scope="col">2010</th>
+                <th scope="col">2050</th>
+                <th scope="col">Change</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">1</th>
+                <td><%= gipl_magt_2010_1m %></td>
+                <td><%= gipl_magt_2050_1m %></td>
+                <td><% print("+"+(gipl_magt_2050_1m - gipl_magt_2010_1m).toFixed(2)); %></td>
+              </tr>
+              <tr>
+                <th scope="row">3</th>
+                <td><%= gipl_magt_2010_3m %></td>
+                <td><%= gipl_magt_2050_3m %></td>
+                <td><% print("+"+(gipl_magt_2050_3m - gipl_magt_2010_3m).toFixed(2)); %></td>
+              </tr>
+              <tr>
+                <th scope="row">5</th>
+                <td><%= gipl_magt_2010_5m %></td>
+                <td><%= gipl_magt_2050_5m %></td>
+                <td><% print("+"+(gipl_magt_2050_5m - gipl_magt_2010_5m).toFixed(2)); %></td>
+              </tr>
+            </tbody>
+            </table>
+            
+            <h4 class="title is-6">GIPL Active Layer Thickness (m)</h4>
+            <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">2010</th>
+                <th scope="col">2050</th>
+                <th scope="col">Change</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><%= gipl_alt_2010 %></td>
+                <td><%= gipl_alt_2050 %></td>
+                <td><% print((gipl_alt_2050 - gipl_alt_2010).toFixed(2)); %></td>
+              </tr>
+            </tbody>
+            </table>
+            <h4 class="title is-6">Additional data</h4>
+            <div class="content">
+            <ul>
+            <li>Obu et al. (2018) Mean Annual Ground Temperature (deg. C) at Top of Permafrost: <strong><%= magt_2018 %></strong></li>
+            <li>Jorgenson et al. (2008) Ground Ice Volume: <strong><%= giv_2008 %></strong></li>
+            <li>Jorgenson et al. (2008) Permafrost Extent: <strong><%= pe_2008 %></strong></li>
+            <li>Obu et al. (2018) Permafrost Extent: <strong><%= pe_2018 %></strong></li>
+            </ul>
+            </div>
+            `
+          );
+          console.log(values);
+          this.$options.leaflet.marker = this.$L
+            .marker(ev.latlng)
+            .addTo(this.$options.leaflet.map);
+          this.$options.leaflet.marker.bindPopup(template(values)).openPopup();
+        });
+    },
     // Returns the Leaflet object corresponding to the
     // requested layer ID, or, undefined if not present
     findLayerById(id) {
@@ -138,7 +271,7 @@ export default {
 
       // Refresh map layer contents and visibility
       // TODO 2021 it'd be nice to get rid of all this complexity.
-      _.each(layers, (layer) => {
+      _.each(layers, layer => {
         if (_.isFunction(layer.wmsLayerName)) {
           // Update layer parameters
           let layerObj = this.findLayerById(layer.id);
@@ -160,7 +293,7 @@ export default {
             layerObj.setParams(newParams);
           }
         }
-        
+
         // Explicitly order the list by specified z-index
         this.$options.leaflet.layers[layer.id].setZIndex(layer.zindex);
 
@@ -201,9 +334,21 @@ export default {
 };
 </script>
 
-<style type="scss">
+<style lang="scss">
 #map--leaflet-map {
   display: block;
   height: 85vh;
+}
+
+.leaflet-popup-content {
+
+  h4.title.is-6 {
+    margin-bottom: 0.25em;
+  }
+
+  table {
+    font-size: 110%;
+  }
+
 }
 </style>

@@ -33,7 +33,6 @@
         <map-layer id="altGIPL2050"></map-layer>
       </li>
     </ul>
-    </ul>
     <h3 class="title is-4 top">Permafrost Extent</h3>
     <ul>
       <li>
