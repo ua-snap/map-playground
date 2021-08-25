@@ -89,50 +89,18 @@ export default {
           }
           console.log(res.data);
           let values = {
-            gipl_alt_2010:
-              res.data["GIPL Active Layer Thickness (m)"]["GIPL_2010_ALT"],
-            gipl_alt_2050:
-              res.data["GIPL Active Layer Thickness (m)"]["GIPL_2050_ALT"],
-            gipl_magt_2010_1m:
-              res.data["GIPL Mean Annual Ground Temperature (deg. C)"][
-                "GIPL_2010_1m_MAGT"
-              ],
-            gipl_magt_2010_3m:
-              res.data["GIPL Mean Annual Ground Temperature (deg. C)"][
-                "GIPL_2010_3m_MAGT"
-              ],
-            gipl_magt_2010_5m:
-              res.data["GIPL Mean Annual Ground Temperature (deg. C)"][
-                "GIPL_2010_5m_MAGT"
-              ],
-            gipl_magt_2050_1m:
-              res.data["GIPL Mean Annual Ground Temperature (deg. C)"][
-                "GIPL_2050_1m_MAGT"
-              ],
-            gipl_magt_2050_3m:
-              res.data["GIPL Mean Annual Ground Temperature (deg. C)"][
-                "GIPL_2050_3m_MAGT"
-              ],
-            gipl_magt_2050_5m:
-              res.data["GIPL Mean Annual Ground Temperature (deg. C)"][
-                "GIPL_2050_5m_MAGT"
-              ],
-            giv_2008:
-              res.data[
-                "Jorgenson et al. (2008) Permafrost Extent and Ground Ice Volume"
-              ]["Ground Ice Volume"],
-            pe_2008:
-              res.data[
-                "Jorgenson et al. (2008) Permafrost Extent and Ground Ice Volume"
-              ]["Permafrost Extent"],
-            magt_2018:
-              res.data[
-                "Obu et al. (2018) Mean Annual Ground Temperature (deg. C) at Top of Permafrost"
-              ]["Obu 2000-2016 MAGT (Top of Permafrost)"],
-            pe_2018:
-              res.data["Obu et al. (2018) Permafrost Extent"][
-                "Permafrost Extent"
-              ]
+            gipl_alt_2010: res.data["gipl_alt"][0]["thickness"],
+            gipl_alt_2050: res.data["gipl_alt"][1]["thickness"],
+            gipl_magt_2010_1m: res.data["gipl_magt"][0]["temp"],
+            gipl_magt_2010_3m: res.data["gipl_magt"][2]["temp"],
+            gipl_magt_2010_5m: res.data["gipl_magt"][4]["temp"],
+            gipl_magt_2050_1m: res.data["gipl_magt"][1]["temp"],
+            gipl_magt_2050_3m: res.data["gipl_magt"][3]["temp"],
+            gipl_magt_2050_5m: res.data["gipl_magt"][5]["temp"],
+            giv_2008: res.data["jorg"]["ice"],
+            pe_2008: res.data["jorg"]["pfx"],
+            magt_2018: res.data["obu_magt"]["temp"],
+            pe_2018: res.data["obupfx"]["pfx"]
           };
           let template = _.template(
             `
@@ -341,7 +309,6 @@ export default {
 }
 
 .leaflet-popup-content {
-
   h4.title.is-6 {
     margin-bottom: 0.25em;
   }
@@ -349,6 +316,5 @@ export default {
   table {
     font-size: 110%;
   }
-
 }
 </style>
